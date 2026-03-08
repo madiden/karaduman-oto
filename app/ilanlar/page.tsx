@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpDown, Calendar, Fuel, Gauge, Settings2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getSiteSettings } from "@/lib/get-settings";
+import { SahibindenCard } from "@/components/sahibinden-card";
 
 export const revalidate = 60; // Revalidate every minute
 
@@ -47,6 +49,7 @@ export default async function ListingsPage(props: { searchParams: SearchParams }
     const searchParams = await props.searchParams;
     const sort = typeof searchParams.sort === 'string' ? searchParams.sort : 'date_desc';
     const cars = await getCars(sort);
+    const settings = await getSiteSettings();
 
     return (
         <div className="container py-12 px-4 md:px-6">
@@ -79,6 +82,9 @@ export default async function ListingsPage(props: { searchParams: SearchParams }
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {settings.sahibinden_url && (
+                    <SahibindenCard url={settings.sahibinden_url} />
+                )}
                 {cars.length > 0 ? (
                     cars.map((car) => (
                         <CarCard key={car.id} car={car} />

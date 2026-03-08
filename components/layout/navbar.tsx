@@ -3,8 +3,12 @@ import Image from "next/image";
 import { Menu, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site-config";
+import { getSiteSettings } from "@/lib/get-settings";
+import { encodeWhatsAppLink } from "@/lib/whatsapp";
 
-export function Navbar() {
+export async function Navbar() {
+    const settings = await getSiteSettings();
+
     return (
         <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
             <div className="container flex h-20 items-center justify-between px-4 md:px-6 relative">
@@ -50,12 +54,14 @@ export function Navbar() {
                         <Menu className="h-5 w-5" />
                         <span className="sr-only">Menüyü aç</span>
                     </Button>
-                    <Link href={siteConfig.contact.whatsapp} target="_blank" className="hidden md:flex">
-                        <Button variant="default" className="bg-green-600 hover:bg-green-700 text-white gap-2">
-                            <Phone className="h-4 w-4" />
-                            WhatsApp
-                        </Button>
-                    </Link>
+                    {settings.whatsapp && (
+                        <Link href={encodeWhatsAppLink(settings.whatsapp)} target="_blank" className="hidden md:flex">
+                            <Button variant="default" className="bg-green-600 hover:bg-green-700 text-white gap-2">
+                                <Phone className="h-4 w-4" />
+                                WhatsApp
+                            </Button>
+                        </Link>
+                    )}
                 </div>
             </div>
         </nav>

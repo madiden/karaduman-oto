@@ -24,6 +24,31 @@ export type Comment = {
     is_approved: boolean;
 };
 
+export type SiteSettings = {
+    id: string;
+    phone: string;
+    whatsapp: string;
+    email: string;
+    address: string;
+    map_embed_url: string;
+    working_hours: string;
+    instagram: string;
+    facebook: string;
+    twitter: string;
+    insurance_whatsapp: string;
+    insurance_image: string;
+    sahibinden_url: string;
+    updated_at: string;
+};
+
+export type GalleryPhoto = {
+    id: string;
+    created_at: string;
+    image_url: string;
+    caption?: string;
+    is_hero: boolean;
+};
+
 export type Database = {
     public: {
         Tables: {

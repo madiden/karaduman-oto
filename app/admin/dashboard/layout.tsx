@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Car, MessageSquare, LogOut, Home } from "lucide-react";
+import { LayoutDashboard, Car, MessageSquare, LogOut, Home, ImageIcon, Settings } from "lucide-react";
 import { headers, cookies } from "next/headers";
 
 
@@ -80,6 +80,16 @@ export default async function AdminDashboardLayout({
                     <Link href="/admin/dashboard/comments">
                         <Button variant="ghost" className="w-full justify-start gap-2">
                             <MessageSquare className="h-4 w-4" /> Yorumlar
+                        </Button>
+                    </Link>
+                    <Link href="/admin/dashboard/gallery">
+                        <Button variant="ghost" className="w-full justify-start gap-2">
+                            <ImageIcon className="h-4 w-4" /> Galeri
+                        </Button>
+                    </Link>
+                    <Link href="/admin/dashboard/settings">
+                        <Button variant="ghost" className="w-full justify-start gap-2">
+                            <Settings className="h-4 w-4" /> Site Ayarları
                         </Button>
                     </Link>
                 </nav>

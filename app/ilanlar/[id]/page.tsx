@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Calendar, Fuel, Gauge, Settings2, Share2, ArrowLeft, Phone, ShieldCheck } from "lucide-react";
+import { Calendar, Fuel, Gauge, Settings2, Share2, ArrowLeft, Phone, ShieldCheck, MessageCircle } from "lucide-react";
+import { getSiteSettings } from "@/lib/get-settings";
 
 export const revalidate = 60;
 
@@ -26,6 +27,7 @@ async function getCar(id: string) {
 export default async function CarDetailPage(props: { params: Params }) {
     const params = await props.params;
     const car = await getCar(params.id);
+    const settings = await getSiteSettings();
 
     if (!car) {
         notFound();
@@ -113,9 +115,9 @@ export default async function CarDetailPage(props: { params: Params }) {
                         </div>
 
                         <div className="mt-8 space-y-3">
-                            <Link href={`https://wa.me/905555555555?text=Merhaba, ${car.brand} ${car.model} ilanınız (${car.year}) hakkında bilgi almak istiyorum.`} target="_blank">
+                            <Link href={`${settings.whatsapp}${settings.whatsapp.includes('?') ? '&' : '?'}text=${encodeURIComponent(`Merhaba, ${car.brand} ${car.model} ilanınız (${car.year}) hakkında bilgi almak istiyorum.`)}`} target="_blank">
                                 <Button className="w-full bg-green-600 hover:bg-green-700 text-white" size="lg">
-                                    <Phone className="mr-2 h-4 w-4" /> WhatsApp ile Yaz
+                                    <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp ile Yaz
                                 </Button>
                             </Link>
                             <Button variant="outline" className="w-full border-zinc-300">

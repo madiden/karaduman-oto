@@ -1,11 +1,47 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Shield, Award, Users, Phone } from "lucide-react";
+import { Shield, Award, Users, MessageCircle } from "lucide-react";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { GallerySection } from "@/components/gallery-section";
+import { GalleryPhoto } from "@/types";
+import { getSiteSettings } from "@/lib/get-settings";
+import { encodeWhatsAppLink } from "@/lib/whatsapp";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
-export default function AboutPage() {
+export default async function AboutPage() {
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() {
+                    return cookieStore.getAll();
+                },
+                setAll(cookiesToSet) {
+                    try {
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            cookieStore.set(name, value, options)
+                        );
+                    } catch {
+                    }
+                },
+            },
+        }
+    );
+
+    const { data: photos } = await supabase
+        .from("gallery_photos")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .returns<GalleryPhoto[]>();
+
+    const heroPhoto = photos?.find((p) => p.is_hero);
+    const settings = await getSiteSettings();
+
     return (
         <div className="container py-12 px-4 md:px-6">
             {/* Hero Section */}
@@ -23,12 +59,23 @@ export default function AboutPage() {
                     </p>
                 </div>
                 <div className="flex-1 relative h-64 md:h-96 w-full bg-zinc-100 rounded-2xl overflow-hidden border border-zinc-200">
-                    {/* Placeholder for About Image */}
-                    <div className="absolute inset-0 flex items-center justify-center text-zinc-400 font-medium">
-                        Ofis / Galeri Fotoğrafı
-                    </div>
+                    {heroPhoto ? (
+                        <Image
+                            src={heroPhoto.image_url}
+                            alt={heroPhoto.caption || "Karaduman Otomotiv Galeri"}
+                            fill
+                            className="object-cover"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-zinc-400 font-medium">
+                            Ofis / Galeri Fotoğrafı
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Gallery */}
+            <GallerySection photos={photos || []} />
 
             {/* Features */}
             <div className="grid md:grid-cols-3 gap-8 mb-16">
@@ -71,9 +118,9 @@ export default function AboutPage() {
                     </p>
                 </div>
                 <div className="mt-6 md:mt-0 flex-shrink-0">
-                    <Link href="https://wa.me/905555555555?text=Merhaba, sigorta teklifi almak istiyorum." target="_blank">
-                        <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
-                            <Phone className="h-5 w-5" /> Teklif Al
+                    <Link href={encodeWhatsAppLink(settings.insurance_whatsapp || settings.whatsapp)} target="_blank">
+                        <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white gap-2">
+                            <MessageCircle className="h-5 w-5" /> WhatsApp ile Teklif Al
                         </Button>
                     </Link>
                 </div>

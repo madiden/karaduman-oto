@@ -3,8 +3,11 @@ import { Car } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Calendar, Fuel, Gauge, Settings2 } from "lucide-react";
+import { ArrowRight, Calendar, Fuel, Gauge, Settings2, MessageCircle } from "lucide-react";
 import { siteConfig } from "@/config/site-config";
+import { getSiteSettings } from "@/lib/get-settings";
+import { encodeWhatsAppLink } from "@/lib/whatsapp";
+import { SahibindenCard } from "@/components/sahibinden-card";
 
 export const revalidate = 60; // Revalidate every minute
 
@@ -35,6 +38,7 @@ export const metadata = {
 export default async function Home() {
   const showcaseCars = await getShowcaseCars();
   const latestCars = await getLatestCars();
+  const settings = await getSiteSettings();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -76,6 +80,9 @@ export default async function Home() {
               {siteConfig.labels.showcaseTitle}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {settings.sahibinden_url && (
+                <SahibindenCard url={settings.sahibinden_url} featured />
+              )}
               {showcaseCars.map((car) => (
                 <CarCard key={car.id} car={car} featured />
               ))}
@@ -95,6 +102,9 @@ export default async function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {settings.sahibinden_url && (
+              <SahibindenCard url={settings.sahibinden_url} />
+            )}
             {latestCars.length > 0 ? (
               latestCars.map((car) => (
                 <CarCard key={car.id} car={car} />
@@ -140,19 +150,29 @@ export default async function Home() {
                   Geniş Anlaşmalı Servis Ağı
                 </li>
               </ul>
-              <Link href={siteConfig.contact.whatsapp} target="_blank">
-                <Button className="mt-4 bg-blue-600 hover:bg-blue-700 px-8 py-6 rounded-xl text-lg transition-all hover:shadow-xl hover:-translate-y-1">
-                  Hemen Teklif Al
+              <Link href={encodeWhatsAppLink(settings.insurance_whatsapp || settings.whatsapp)} target="_blank">
+                <Button className="mt-4 bg-green-600 hover:bg-green-700 px-8 py-6 rounded-xl text-lg transition-all hover:shadow-xl hover:-translate-y-1 gap-2">
+                  <MessageCircle className="h-5 w-5" />
+                  WhatsApp ile Teklif Al
                 </Button>
               </Link>
             </div>
             <div className="relative">
               <div className="absolute -inset-4 bg-blue-500/10 rounded-3xl blur-2xl"></div>
-              <div className="relative h-64 md:h-96 bg-zinc-100 dark:bg-zinc-800 rounded-3xl overflow-hidden flex items-center justify-center border border-zinc-200 dark:border-zinc-700 shadow-2xl">
-                <div className="flex flex-col items-center gap-4 text-zinc-400">
-                  <Settings2 className="h-16 w-16 opacity-20" />
-                  <span className="font-medium">Karaduman Sigorta Görseli</span>
-                </div>
+              <div className="relative h-64 md:h-96 bg-zinc-100 dark:bg-zinc-800 rounded-3xl overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-2xl">
+                {settings.insurance_image ? (
+                  <Image
+                    src={settings.insurance_image}
+                    alt="Karaduman Sigorta"
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full gap-4 text-zinc-400">
+                    <Settings2 className="h-16 w-16 opacity-20" />
+                    <span className="font-medium">Karaduman Sigorta Görseli</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
