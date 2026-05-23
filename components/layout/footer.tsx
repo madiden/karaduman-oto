@@ -11,9 +11,9 @@ export async function Footer() {
         <footer className="bg-zinc-950 text-zinc-300 py-16 border-t border-zinc-900">
             <div className="container px-4 md:px-6 grid gap-12 md:grid-cols-3 lg:grid-cols-4">
                 <div className="space-y-6 lg:col-span-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4 animate-fade-in">
                         {siteConfig.logo.src ? (
-                            <div className="relative h-[108px] w-[264px] grayscale brightness-200 contrast-125 hover:grayscale-0 transition-all duration-500 -ml-4 md:-ml-8">
+                            <div className="relative h-24 w-24 md:h-28 md:w-28 hover:scale-105 transition-transform duration-500">
                                 <Image
                                     src={siteConfig.logo.src}
                                     alt={siteConfig.logo.alt}
@@ -21,17 +21,16 @@ export async function Footer() {
                                     className="object-contain"
                                 />
                             </div>
-                        ) : (
-                            <div className="flex flex-col -space-y-1">
-                                <span className="text-xl md:text-2xl font-black tracking-tighter uppercase italic">
-                                    <span className="text-red-600">Kara</span>
-                                    <span className="text-white">duman</span>
-                                </span>
-                                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500 pl-0.5">
-                                    Otomotiv
-                                </span>
-                            </div>
-                        )}
+                        ) : null}
+                        <div className="flex flex-col -space-y-0.5 leading-none">
+                            <span className="text-2xl md:text-3xl font-black tracking-tight uppercase italic">
+                                <span className="text-red-600">Kara</span>
+                                <span className="text-white">duman</span>
+                            </span>
+                            <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-zinc-500">
+                                Otomotiv
+                            </span>
+                        </div>
                     </div>
                     <p className="text-base text-zinc-400 max-w-md leading-relaxed">
                         {siteConfig.description}
