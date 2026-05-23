@@ -24,7 +24,7 @@ export async function Navbar() {
                     className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex items-center gap-3 group animate-fade-in-down"
                 >
                     {siteConfig.logo.src ? (
-                        <div className="relative h-14 w-14 md:h-20 md:w-20 group-hover:scale-105 group-hover:-rotate-1 transition-transform duration-300 ease-out">
+                        <div className="relative h-24 w-24 md:h-36 md:w-36 group-hover:scale-105 group-hover:-rotate-1 transition-transform duration-300 ease-out">
                             <Image
                                 src={siteConfig.logo.src}
                                 alt={siteConfig.logo.alt}
