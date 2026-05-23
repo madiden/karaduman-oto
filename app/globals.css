@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@utility container {
+  margin-inline: auto;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
