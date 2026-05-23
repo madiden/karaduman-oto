@@ -13,7 +13,7 @@ npm run lint     # ESLint kontrolu
 npm run preview  # Cloudflare Workers ortamini lokal simule et (wrangler dev)
 npm run deploy   # OpenNext build + Cloudflare Workers'a deploy
 ```
-Test framework'u yoktur. Production deploy `main` branch'e push ile GitHub Actions uzerinden de tetiklenir.
+Test framework'u yoktur. Production deploy lokalden `npm run deploy` ile yapilir (bkz. `.claude/skills/deploy/SKILL.md`).
 
 ## Teknik Yigin
 - **Framework:** Next.js 16.2.6 (App Router), React 19
