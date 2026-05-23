@@ -1,94 +1,90 @@
-# Karaduman Otomotiv - CLAUDE.md
+# CLAUDE.md
 
-Bu dosya, Claude Code'un bu projede verimli calisabilmesi icin olusturulmus bir rehberdir.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Proje Ozeti
-Karaduman Otomotiv - ikinci el arac alim satimi ve sigorta hizmetleri sunan bir galerinin kurumsal web sitesi. Next.js 16 (App Router) + TypeScript + Supabase + Tailwind CSS 4.
+Karaduman Otomotiv - ikinci el arac alim-satimi ve sigorta hizmetleri sunan bir galerinin kurumsal web sitesi. Next.js 16 (App Router) + TypeScript + Supabase + Tailwind CSS 4.
 
-## Hizli Baslangi Komutlari
+## Komutlar
 ```bash
 npm run dev      # Gelistirme sunucusu (localhost:3000)
 npm run build    # Production build
 npm run lint     # ESLint kontrolu
+npm run preview  # Cloudflare Workers ortamini lokal simule et (wrangler dev)
+npm run deploy   # OpenNext build + Cloudflare Workers'a deploy
 ```
+Test framework'u yoktur. Production deploy `main` branch'e push ile GitHub Actions uzerinden de tetiklenir.
 
 ## Teknik Yigin
-- **Framework:** Next.js 16.1.6 (App Router)
-- **Dil:** TypeScript 5 (strict mode)
-- **Stil:** Tailwind CSS 4 (PostCSS) - globals.css'deki CSS degiskenlerine sadik kal
+- **Framework:** Next.js 16.2.6 (App Router), React 19
+- **Dil:** TypeScript 5
+- **Stil:** Tailwind CSS 4 (PostCSS) - `globals.css`'deki CSS degiskenlerine sadik kal
 - **Veritabani & Auth:** Supabase (PostgreSQL + Google OAuth)
 - **UI:** Radix UI + Lucide React ikonlari + CVA (class-variance-authority)
 - **Font:** Geist (Sans & Mono)
-- **Goruntu:** Sharp
+- **Hosting:** Cloudflare Workers (free plan) via `@opennextjs/cloudflare`
+- **Path Alias:** `@/*` -> proje koku
 
-## Proje Yapisi
-```
-app/                    # Next.js App Router
-  (public)/             # Herkese acik sayfa gruplari
-  admin/                # Yonetici paneli (korunmus)
-    dashboard/          # Dashboard sayfalari
-      cars/             # Arac CRUD islemleri
-      comments/         # Yorum yonetimi
-  auth/                 # Auth callback & signout
-  ilanlar/              # Arac listeleme & detay ([id])
-  hakkimizda/           # Hakkimizda
-  iletisim/             # Iletisim
-  sizden-gelenler/      # Musteri yorumlari
-components/
-  ui/                   # Temel UI (button, input, label, textarea)
-  layout/               # Navbar, Footer
-  admin/                # Admin bilesen (car-form)
-config/site-config.ts   # Tum metin ve ayarlar (hard-coded metin YAZMA)
-lib/supabase.ts         # Supabase istemcisi
-lib/utils.ts            # cn() helper (clsx + tailwind-merge)
-types/index.ts          # Car, Comment tipleri
-utils/supabase/         # Middleware yardimcilari
-middleware.ts           # Route koruma + session yonetimi
-```
+## Mimari: Cift Katmanli Konfigurasyon
 
-## Veritabani Tablolari
-- **cars:** id, brand, model, year, price, km, fuel_type, gear_type, engine_power, description, is_showcase, images[], listing_date
-- **comments:** id, user_name, user_image, message, is_approved
-- **admins:** Email bazli yetkilendirme
+Bu proje iki ayri konfigurasyon katmani kullanir — bunu anlamak kritik:
+
+1. **Statik konfigurasyon** (`config/site-config.ts`): Derleme zamaninda sabit metinler (hero, etiketler, logo ayarlari). Hard-coded metin YAZMA, buradan oku.
+2. **Dinamik konfigurasyon** (`site_settings` tablosu, `lib/get-settings.ts` ile cekilir): Admin panelinden degistirilebilen veriler (telefon, WhatsApp, sosyal medya, harita, sigorta). Calisma zamaninda Supabase'den okunur, fallback olarak `defaultSettings` kullanilir.
+
+Navbar, Footer ve ana sayfa her ikisini de kullanir: `siteConfig` + `getSiteSettings()`.
+
+## Veritabani Tablolari (Supabase)
+
+| Tablo | Aciklama |
+|-------|----------|
+| `cars` | Arac ilanlari (brand, model, year, price, km, fuel_type, gear_type, engine_power, description, is_showcase, images[], listing_date) |
+| `comments` | Musteri yorumlari (user_name, user_image, message, is_approved) |
+| `admins` | Email bazli admin yetkilendirme |
+| `site_settings` | Dinamik site ayarlari (telefon, whatsapp, sosyal medya, sigorta, sahibinden URL) - tek satir |
+| `gallery_photos` | Galeri fotograflari (image_url, caption, is_hero) |
+
+**Storage Bucket'lari:** `car-images` (arac gorselleri), `gallery-images` (galeri + sigorta gorselleri)
+
+## Auth Akisi
+1. `/admin` → Google OAuth ile giris (`signInWithOAuth`)
+2. `/auth/callback` → Code exchange, session olusturma
+3. `/admin/dashboard/layout.tsx` → Session kontrolu + `admins` tablosundan email dogrulamasi
+4. Yetkisiz kullanici otomatik sign-out ve redirect
+5. `middleware.ts` → Tum route'larda session yenileme (`updateSession`)
+
+## Supabase Client Kullanimi
+
+Iki farkli Supabase client pattern'i var:
+
+- **Server Components & Route Handlers:** `createServerClient` (`@supabase/ssr`), cookies ile (her kullanim noktasinda yeniden olusturulur)
+- **Client Components:** `createBrowserClient` (`@supabase/ssr`), dosya basinda olusturulur
+- **Basit sorgular:** `lib/supabase.ts`'deki singleton `supabase` (anon key ile, server-side veri cekme icin - auth gerektirmeyen islemler)
 
 ## Gelistirme Kurallari
 
-### Bilesenler
-- Yeni bilesenler `components/` altinda kategorize et
-- UI ogeleri `components/ui/` altinda CVA pattern ile
-- Ikonlar icin **Lucide React** kullan
-- `cn()` helper ile Tailwind class birlestir
-
 ### Server vs Client Components
-- **Varsayilan:** Server Components kullan
-- **`'use client'`:** Sadece etkilesim gereken yerlerde (formlar, state, event handler)
-- Server: `createServerClient` | Client: `createBrowserClient`
+- Varsayilan: Server Components kullan
+- `'use client'`: Sadece etkilesim gereken yerlerde (formlar, state, event handler, lightbox)
 
-### Revalidation Surerleri
+### Revalidation Sureleri
 - Anasayfa & ilanlar: `revalidate = 60`
 - Statik sayfalar (hakkimizda, iletisim): `revalidate = 3600`
 - Admin sayfalari: `revalidate = 0`
 
-### Stil
-- Tailwind CSS 4 - `globals.css`'deki degiskenlere sadik kal
-- Mobile-first responsive tasarim
-- Kurumsal renkler: `site-config.ts` ve Tailwind konfigurasyonuna uy
-
-### Konfigürasyon
-- Tum sabit metinler `config/site-config.ts`'den okunmali
-- Hard-coded metin KULLANMA
-- Cevre degiskenleri: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+### Bilesenler
+- UI ogeleri `components/ui/` altinda CVA pattern ile
+- Ikonlar icin Lucide React kullan
+- `cn()` helper ile Tailwind class birlestir (`lib/utils.ts`)
 
 ### Gorsel Yonetimi
-- Gorseller Supabase `car-images` bucket'ina yuklenir
-- next.config.ts'de Unsplash ve Supabase CDN remote pattern'leri tanimli
-
-### Path Alias
-- `@/*` -> proje koku (ornek: `@/components/ui/button`, `@/lib/supabase`)
+- `next.config.ts`'de izin verilen remote pattern'ler: `images.unsplash.com` ve Supabase CDN
+- Yeni bir remote kaynak eklenmesi gerekirse `next.config.ts`'e ekle
 
 ## Onemli Dosyalar
-- `config/site-config.ts` - Site ayarlari, metinler, iletisim bilgileri
-- `types/index.ts` - Car ve Comment tipleri
-- `lib/supabase.ts` - Supabase client olusturma
-- `middleware.ts` - Auth koruma ve session
-- `GEMINI.md` - Diger AI asistanlari icin rehber (bu dosya ile senkron tut)
+- `config/site-config.ts` — Statik metinler ve ayarlar
+- `lib/get-settings.ts` — Dinamik ayarlari Supabase'den ceker (`getSiteSettings()`)
+- `lib/whatsapp.ts` — WhatsApp link encoding
+- `types/index.ts` — Car, Comment, SiteSettings, GalleryPhoto, Database tipleri
+- `middleware.ts` — Route koruma + session yenileme
+- `GEMINI.md` — Diger AI asistanlari icin rehber (bu dosya ile senkron tut)
